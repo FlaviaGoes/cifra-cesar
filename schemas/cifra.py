@@ -1,14 +1,20 @@
 from pydantic import BaseModel
 class Cifrar(BaseModel):
-    texto_claro: str
-    chave: str
+    textoClaro: str
+    deslocamento: int
 
 class Cifrar_Response(BaseModel):
-    texto_cifrado: str
+    textoCifrado: str
 
 class Decifrar(BaseModel):
-    texto_cifrado: str
-    chave: str
+    textoCifrado: str
+    deslocamento: str
 
 class Decifrar_Response(BaseModel):
-    texto_claro: str
+    textoClaro: str
+
+class Decifrar_Forca_Bruta(BaseModel):
+    textoCifrado: str
+
+class Decifrar_Forca_Bruta_Response(BaseModel):
+    textoClaro: str
