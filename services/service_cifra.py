@@ -34,29 +34,37 @@ async def executar_decifrar_forca_bruta(texto_cifrado: str) -> Decifrar_Forca_Br
     return Decifrar_Forca_Bruta_Response(textoClaro=resposta)
 
 async def buscar_palavra(palavra: str):
-    url = f"https://api.dicionario-aberto.net/word/{palavra}"
+    palavra = palavra.split(" ")
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resposta:
-            if resposta.status != 200:
-                return f"Erro: Falha ao consultar API (status {resposta.status})"
+    for i in range(1, 27):
+        palavra_verificada = palavra[0]
+        deslocamento = i
 
-            dados = await resposta.json()
+        resposta = executar_decifrar(palavra_verificada, deslocamento)
+        if resposta or not isinstance(resposta, str):
+            palavra_decifrada = resposta.textoClaro
+            url = f"https://api.dicionario-aberto.net/word/{palavra_decifrada}"
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as resposta:
+                    if resposta.status == 200:
+                        dados = await resposta.json()
+                        print(dados)
 
-            print(dados)
+                        if isinstance(dados, list) and len(dados) > 0 and "xml" in dados[0]:
+                            xml_texto = dados[0]["xml"]
 
-            if isinstance(dados, list) and len(dados) > 0 and "xml" in dados[0]:
-                xml_texto = dados[0]["xml"]
+                            definicoes = re.findall(r"<orth>(.*?)</orth>", xml_texto, re.DOTALL)
 
-                definicoes = re.findall(r"<orth>(.*?)</orth>", xml_texto, re.DOTALL)
+                            if definicoes:
+                                definicao_limpa = re.sub(r"<.*?>", "", definicoes[0]).strip()
+                                return definicao_limpa
 
-                if definicoes:
-                    definicao_limpa = re.sub(r"<.*?>", "", definicoes[0]).strip()
-                    return definicao_limpa
 
-                return "Definição não encontrada no XML."
-            else:
-                return "Nenhuma definição encontrada."
+        # dicio.com.br/
+
+                    #     return "Definição não encontrada no XML."
+                    # else:
+                    #     return "Nenhuma definição encontrada."
 
 def entrada_valida(texto_claro: str, deslocamento: int, mensagemErro: str) -> HTTPException:
     if(deslocamento <= 0 or deslocamento > 26):
