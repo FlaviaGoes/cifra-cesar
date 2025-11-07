@@ -8,7 +8,7 @@ class Cifrar_Response(BaseModel):
 
 class Decifrar(BaseModel):
     textoCifrado: str
-    deslocamento: str
+    deslocamento: int
 
 class Decifrar_Response(BaseModel):
     textoClaro: str
