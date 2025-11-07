@@ -6,6 +6,7 @@ Integrantes:
 Comandos: 
 - pip install fastapi uvicorn
 - uvicorn main:app
+- pip install aiohttp
 
 Ao executar o projeto, é possível acessar o Swagger através da seguinte documentação:
 - http://127.0.0.1:8000/docs
