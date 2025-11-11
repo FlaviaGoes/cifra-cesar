@@ -34,37 +34,44 @@ async def executar_decifrar_forca_bruta(texto_cifrado: str) -> Decifrar_Forca_Br
     return Decifrar_Forca_Bruta_Response(textoClaro=resposta)
 
 async def buscar_palavra(palavra: str):
-    palavra = palavra.split(" ")
+    if not palavra or palavra.strip() == "":
+        return "Não há texto para ser decifrado."
 
-    for i in range(1, 27):
-        palavra_verificada = palavra[0]
-        deslocamento = i
+    palavras_cifradas = [pv.lower() for pv in palavra.strip().split()]
+    palavras_checagem = palavras_cifradas[:3]
 
-        resposta = executar_decifrar(palavra_verificada, deslocamento)
-        if resposta or not isinstance(resposta, str):
-            palavra_decifrada = resposta.textoClaro
-            url = f"https://api.dicionario-aberto.net/word/{palavra_decifrada}"
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as resposta:
-                    if resposta.status == 200:
-                        dados = await resposta.json()
-                        print(dados)
+    async with aiohttp.ClientSession() as session:
+        for deslocamento in range(1, 27):
+            palavras_validas_encontradas = 0
 
-                        if isinstance(dados, list) and len(dados) > 0 and "xml" in dados[0]:
-                            xml_texto = dados[0]["xml"]
+            for palavra_teste in palavras_checagem:
+                resposta = executar_decifrar(palavra_teste, deslocamento)
+                palavra_decifrada = resposta.textoClaro.strip().lower()
 
-                            definicoes = re.findall(r"<orth>(.*?)</orth>", xml_texto, re.DOTALL)
+                if not palavra_decifrada:
+                    continue
 
-                            if definicoes:
-                                definicao_limpa = re.sub(r"<.*?>", "", definicoes[0]).strip()
-                                return definicao_limpa
+                url = f"https://api.dicionario-aberto.net/word/{palavra_decifrada}"
+                try:
+                    async with session.get(url) as resp:
+                        if resp.status == 200:
+                            dados = await resp.json()
+                            if isinstance(dados, list) and len(dados) > 0 and "xml" in dados[0]:
+                                xml_texto = dados[0]["xml"]
+                                definicoes = re.findall(r"<orth>(.*?)</orth>", xml_texto, re.DOTALL)
+                                if definicoes and definicoes[0].strip():
+                                    palavras_validas_encontradas += 1
+                except Exception:
+                    pass
+
+            if palavras_validas_encontradas >= 2:
+                decifrado_completo = executar_decifrar(palavra, deslocamento).textoClaro
+                return decifrado_completo
+
+    return "Nenhuma decifração válida encontrada."
 
 
         # dicio.com.br/
-
-                    #     return "Definição não encontrada no XML."
-                    # else:
-                    #     return "Nenhuma definição encontrada."
 
 def entrada_valida(texto_claro: str, deslocamento: int, mensagemErro: str) -> HTTPException:
     if(deslocamento <= 0 or deslocamento > 26):
