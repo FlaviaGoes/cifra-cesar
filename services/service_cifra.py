@@ -33,12 +33,17 @@ async def executar_decifrar_forca_bruta(texto_cifrado: str) -> Decifrar_Forca_Br
     resposta = await buscar_palavra(texto_cifrado)
     return Decifrar_Forca_Bruta_Response(textoClaro=resposta)
 
+import aiohttp
+import re
+
 async def buscar_palavra(palavra: str):
     if not palavra or palavra.strip() == "":
         return "Não há texto para ser decifrado."
 
     palavras_cifradas = [pv.lower() for pv in palavra.strip().split()]
-    palavras_checagem = palavras_cifradas[:3]
+    total_palavras = len(palavras_cifradas)
+    
+    palavras_checagem = palavras_cifradas if total_palavras > 3 else palavras_cifradas[:3]
 
     async with aiohttp.ClientSession() as session:
         for deslocamento in range(1, 27):
@@ -64,11 +69,14 @@ async def buscar_palavra(palavra: str):
                 except Exception:
                     pass
 
-            if palavras_validas_encontradas >= 2:
+            limite_validas = 3 if total_palavras > 3 else 2
+
+            if palavras_validas_encontradas >= limite_validas:
                 decifrado_completo = executar_decifrar(palavra, deslocamento).textoClaro
                 return decifrado_completo
 
     return "Nenhuma decifração válida encontrada."
+
 
 
         # dicio.com.br/
