@@ -1,8 +1,6 @@
 from fastapi import HTTPException, status
 from schemas.cifra import Cifrar_Response, Decifrar_Response, Decifrar_Forca_Bruta_Response
-import aiohttp
 import re
-from spellchecker import SpellChecker
 
 def executar_cifra(texto: str, deslocamento: str) -> Cifrar_Response:
     texto_cifrado = ""
@@ -46,30 +44,22 @@ async def buscar_palavra(palavra: str):
     
     palavras_checagem = palavras_cifradas if total_palavras > 3 else palavras_cifradas[:3]
 
-    async with aiohttp.ClientSession() as session:
-        for deslocamento in range(1, 27):
-            palavras_validas_encontradas = 0
+    for deslocamento in range(1, 27):
+        palavras_validas_encontradas = 0
 
-            for palavra_teste in palavras_checagem:
-                resposta = executar_decifrar(palavra_teste, deslocamento)
-                palavra_decifrada = resposta.textoClaro.strip().lower()
+        for palavra_teste in palavras_checagem:
+            resposta = executar_decifrar(palavra_teste, deslocamento)
+            palavra_decifrada = resposta.textoClaro.strip().lower()
 
-                if not palavra_decifrada:
-                    continue
+            if not palavra_decifrada:
+                continue
 
-                if palavra_decifrada in dicionario:
-                    palavras_validas_encontradas += 1
+            if palavra_decifrada in dicionario:
+                palavras_validas_encontradas += 1
 
-            if total_palavras >= 3:
-                limite_validas = 3
-            elif total_palavras == 2:
-                limite_validas = 2
-            else:
-                limite_validas = 1
-
-            if palavras_validas_encontradas >= limite_validas:
-                decifrado_completo = executar_decifrar(palavra, deslocamento).textoClaro
-                return decifrado_completo
+        if palavras_validas_encontradas > 0:
+            decifrado_completo = executar_decifrar(palavra, deslocamento).textoClaro
+            return decifrado_completo
 
     return "Nenhuma decifração válida encontrada."
 
