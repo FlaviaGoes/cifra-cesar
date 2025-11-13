@@ -49,6 +49,10 @@ async def buscar_palavra(palavra: str):
 
     palavras_cifradas = [pv.lower() for pv in palavra.strip().split()]
 
+    melhor_resultado = None  # guarda o texto com melhor correspondência
+    maior_qtd_palavras_validas = 0  # guarda o maior número de palavras reconhecidas
+    melhor_deslocamento = None  # para debug ou logs futuros
+
     for deslocamento in range(1, 27):
         palavras_validas_encontradas = 0
 
@@ -58,11 +62,16 @@ async def buscar_palavra(palavra: str):
 
             if palavra_decifrada and palavra_decifrada in dicionario:
                 palavras_validas_encontradas += 1
+                
+        if palavras_validas_encontradas > maior_qtd_palavras_validas:
+            maior_qtd_palavras_validas = palavras_validas_encontradas
+            melhor_deslocamento = deslocamento
+            melhor_resultado = executar_decifrar(palavra, melhor_deslocamento).textoClaro
 
-        if palavras_validas_encontradas > 0:
-            decifrado_completo = executar_decifrar(palavra, deslocamento).textoClaro
-            return decifrado_completo
-
+    if melhor_resultado:
+            print(f"Retornando melhor resultado (deslocamento={melhor_deslocamento})")
+            return melhor_resultado
+    
     return "Nenhuma decifração válida encontrada."
 
 def entrada_valida(texto_claro: str, deslocamento: int, mensagemErro: str) -> HTTPException:
