@@ -48,21 +48,15 @@ async def buscar_palavra(palavra: str):
         dicionario = set(linha.strip() for linha in f if linha.strip())
 
     palavras_cifradas = [pv.lower() for pv in palavra.strip().split()]
-    total_palavras = len(palavras_cifradas)
-    
-    palavras_checagem = palavras_cifradas if total_palavras > 3 else palavras_cifradas[:3]
 
     for deslocamento in range(1, 27):
         palavras_validas_encontradas = 0
 
-        for palavra_teste in palavras_checagem:
+        for palavra_teste in palavras_cifradas:
             resposta = executar_decifrar(palavra_teste, deslocamento)
             palavra_decifrada = resposta.textoClaro.strip().lower()
 
-            if not palavra_decifrada:
-                continue
-
-            if palavra_decifrada in dicionario:
+            if palavra_decifrada and palavra_decifrada in dicionario:
                 palavras_validas_encontradas += 1
 
         if palavras_validas_encontradas > 0:
