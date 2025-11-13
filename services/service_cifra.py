@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 from schemas.cifra import Cifrar_Response, Decifrar_Response, Decifrar_Forca_Bruta_Response
 import aiohttp
 import re
+from spellchecker import SpellChecker
 
 def executar_cifra(texto: str, deslocamento: str) -> Cifrar_Response:
     texto_cifrado = ""
@@ -33,12 +34,12 @@ async def executar_decifrar_forca_bruta(texto_cifrado: str) -> Decifrar_Forca_Br
     resposta = await buscar_palavra(texto_cifrado)
     return Decifrar_Forca_Bruta_Response(textoClaro=resposta)
 
-import aiohttp
-import re
-
 async def buscar_palavra(palavra: str):
     if not palavra or palavra.strip() == "":
         return "Não há texto para ser decifrado."
+    
+    with open("dictionary/new_dict_normalizado.dic", "r", encoding="utf-8") as f:
+        dicionario = set(linha.strip() for linha in f if linha.strip())
 
     palavras_cifradas = [pv.lower() for pv in palavra.strip().split()]
     total_palavras = len(palavras_cifradas)
@@ -56,30 +57,21 @@ async def buscar_palavra(palavra: str):
                 if not palavra_decifrada:
                     continue
 
-                url = f"https://api.dicionario-aberto.net/word/{palavra_decifrada}"
-                try:
-                    async with session.get(url) as resp:
-                        if resp.status == 200:
-                            dados = await resp.json()
-                            if isinstance(dados, list) and len(dados) > 0 and "xml" in dados[0]:
-                                xml_texto = dados[0]["xml"]
-                                definicoes = re.findall(r"<orth>(.*?)</orth>", xml_texto, re.DOTALL)
-                                if definicoes and definicoes[0].strip():
-                                    palavras_validas_encontradas += 1
-                except Exception:
-                    pass
+                if palavra_decifrada in dicionario:
+                    palavras_validas_encontradas += 1
 
-            limite_validas = 3 if total_palavras > 3 else 2
+            if total_palavras >= 3:
+                limite_validas = 3
+            elif total_palavras == 2:
+                limite_validas = 2
+            else:
+                limite_validas = 1
 
             if palavras_validas_encontradas >= limite_validas:
                 decifrado_completo = executar_decifrar(palavra, deslocamento).textoClaro
                 return decifrado_completo
 
     return "Nenhuma decifração válida encontrada."
-
-
-
-        # dicio.com.br/
 
 def entrada_valida(texto_claro: str, deslocamento: int, mensagemErro: str) -> HTTPException:
     if(deslocamento <= 0 or deslocamento > 26):
