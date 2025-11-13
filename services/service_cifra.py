@@ -9,8 +9,12 @@ def executar_cifra(texto: str, deslocamento: str) -> Cifrar_Response:
 
     for char in texto:
         if char.isalpha():
-            base = ord('A') if char.isupper() else ord('a')
-            texto_cifrado += chr((ord(char) - base + deslocamento) % 26 + base)
+            base_ascii = ord('A') if char.isupper() else ord('a')
+            indice_original = ord(char) - base_ascii
+            indice_cifrado = (indice_original + deslocamento) % 26
+            codigo_ascii_cifrado = indice_cifrado + base_ascii
+            char_cifrado = chr(codigo_ascii_cifrado)
+            texto_cifrado += char_cifrado
         else:
             texto_cifrado += char
 
@@ -21,8 +25,12 @@ def executar_decifrar(texto_cifrado: str, deslocamento: int) -> Decifrar_Respons
 
     for char in texto_cifrado:
         if char.isalpha():
-            base = ord('A') if char.isupper() else ord('a')
-            texto_claro += chr((ord(char) - base - deslocamento) % 26 + base)
+            base_ascii = ord('A') if char.isupper() else ord('a')
+            indice_cifrado = ord(char) - base_ascii
+            indice_original = (indice_cifrado - deslocamento) % 26
+            codigo_ascii_original = indice_original + base_ascii
+            char_decifrado = chr(codigo_ascii_original)
+            texto_claro += char_decifrado
         else:
             texto_claro += char
 
